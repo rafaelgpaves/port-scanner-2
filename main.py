@@ -3,6 +3,7 @@ import socket
 from termcolor import colored
 import scapy.all as scapy
 import ipaddress
+import whois
 
 #result = subprocess.run(["ifconfig"], capture_output=True)
 #print(result.stdout.decode("UTF-8"))
@@ -226,6 +227,31 @@ class Scanner:
         except Exception as e:
             print(f"Não foi possível escanear a rede, erro --> {e}")
 
+    def get_whois(self):
+        escolha = ""
+        while escolha not in ["1", "2"]:
+            print("Escolha uma opção de output: ")
+            print("1. Resumido (apresenta principais informações, como datas de criação/expiração, name_servers e país)")
+            print("2. Full (apresenta todas as informações coletadas)")
+            escolha = input(">>> ")
+
+        w = whois.whois(self.IP)
+
+        if escolha == "1":
+            output = f"""
+Domain name: {w["domain_name"]}
+Updated date: {w["updated_date"]}
+Creation date: {w["creation_date"]}
+Expiration date: {w["expiration_date"]}
+Name servers: {w["name_servers"]}
+Emails: {w["emails"]}
+País: {w["country"]}
+            """
+            print(output)
+        elif escolha == "2":
+            print(w)
+        print()
+
     def run(self):
         while self.running:
             print("Escolha algo para fazer: ")
@@ -235,6 +261,7 @@ class Scanner:
             print("4. Escanear portas (UDP)")
             print("5. Detectar OS")
             print("6. Escanear hosts conectados a sua rede")
+            print("7. whois")
             print("0. Sair")
             escolha = input(">>> ")
 
@@ -295,6 +322,9 @@ class Scanner:
 
             elif escolha == "6":
                 self.scan_network()
+
+            elif escolha == "7":
+                self.get_whois()
 
             elif escolha == "0":
                 self.running = False
