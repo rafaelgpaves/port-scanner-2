@@ -1,4 +1,4 @@
-# Port Scanner
+# Port Scanner 2
 
 Projeto desenvolvido para a disciplina de Tecnologias Hacker, 7° semestre de Engenharia de Computação
 

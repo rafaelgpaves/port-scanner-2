@@ -4,6 +4,8 @@ from termcolor import colored
 import scapy.all as scapy
 import ipaddress
 import whois
+from wappalyzer import analyze
+from pprint import pprint
 
 #result = subprocess.run(["ifconfig"], capture_output=True)
 #print(result.stdout.decode("UTF-8"))
@@ -252,9 +254,25 @@ País: {w["country"]}
             print(w)
         print()
 
+    def get_appalyzer(self):
+        escolha = ""
+        while escolha not in ["1", "2", "3"]:
+            print("Escolha uma opção de scan: ")
+            print("1. Rápido")
+            print("2. Balanceado")
+            print("3. Full (apresenta todas as informações coletadas)")
+            escolha = input(">>> ")
+
+        url = "https://stackoverflow.com"
+        escolhas = ["fast", "balanced", "full"]
+        output = analyze(url=url, scan_type=escolhas[int(escolha) - 1])
+
+        print(f"Tecnologias detectadas em {url}")
+        pprint(output[url])
+    
     def run(self):
         while self.running:
-            print("Escolha algo para fazer: ")
+            print("\nEscolha algo para fazer: ")
             print("1. Definir o IP do host")
             print("2. Definir o IP da rede")
             print("3. Escanear portas (TCP)")
@@ -262,6 +280,7 @@ País: {w["country"]}
             print("5. Detectar OS")
             print("6. Escanear hosts conectados a sua rede")
             print("7. whois")
+            print("8. wappalyzer")
             print("0. Sair")
             escolha = input(">>> ")
 
@@ -325,6 +344,9 @@ País: {w["country"]}
 
             elif escolha == "7":
                 self.get_whois()
+
+            elif escolha == "8":
+                self.get_appalyzer()
 
             elif escolha == "0":
                 self.running = False
