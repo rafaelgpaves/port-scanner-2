@@ -3,9 +3,11 @@ import socket
 from termcolor import colored
 import scapy.all as scapy
 import ipaddress
+import wafw00f.main
 import whois
 from wappalyzer import analyze
 from pprint import pprint
+import wafw00f
 
 #result = subprocess.run(["ifconfig"], capture_output=True)
 #print(result.stdout.decode("UTF-8"))
@@ -267,8 +269,13 @@ País: {w["country"]}
         escolhas = ["fast", "balanced", "full"]
         output = analyze(url=url, scan_type=escolhas[int(escolha) - 1])
 
-        print(f"Tecnologias detectadas em {url}")
+        print(f"Tecnologias detectadas em {url}:")
         pprint(output[url])
+    
+    def get_wafw00f(self):
+        print("Tentando detectar se o site possui algum WAF:")
+        waf = wafw00f.main.WAFW00F("https://stackoverflow.com")
+        print(waf.identwaf())
     
     def run(self):
         while self.running:
@@ -281,6 +288,7 @@ País: {w["country"]}
             print("6. Escanear hosts conectados a sua rede")
             print("7. whois")
             print("8. wappalyzer")
+            print("9. wafw00f")
             print("0. Sair")
             escolha = input(">>> ")
 
@@ -341,12 +349,19 @@ País: {w["country"]}
 
             elif escolha == "6":
                 self.scan_network()
+                continue
 
             elif escolha == "7":
                 self.get_whois()
+                continue
 
             elif escolha == "8":
                 self.get_appalyzer()
+                continue
+
+            elif escolha == "9":
+                self.get_wafw00f()
+                continue
 
             elif escolha == "0":
                 self.running = False

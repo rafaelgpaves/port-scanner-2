@@ -2,3 +2,4 @@ scapy
 termcolor
 python-whois
 wappalyzer
+wafw00f
