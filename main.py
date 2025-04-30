@@ -8,6 +8,7 @@ import whois
 from wappalyzer import analyze
 from pprint import pprint
 import wafw00f
+import requests
 
 #result = subprocess.run(["ifconfig"], capture_output=True)
 #print(result.stdout.decode("UTF-8"))
@@ -55,6 +56,60 @@ KNOWN_PORTS = {
     3389: "RDP",
     5432: "PostreSQL"
 }
+
+SUBDOMAINS = [
+    "mail",
+    "mail2",
+    "www",
+    "ns2",
+    "ns1",
+    "blog", 
+    "localhost",
+    "mst",
+    "m",
+    "ftp",
+    "mobile",
+    "ns3",
+    "smtp",
+    "search",
+    "api"
+    "dev"
+    "secure"
+    "webmail",
+    "admin",
+    "img",
+    "news",
+    "sms",
+    "marketing",
+    "test",
+    "video",
+    "www2",
+    "media",
+    "static",
+    "ads",
+    "mail2",
+    "beta",
+    "wap",
+    "blogs",
+    "download",
+    "dns1",
+    "www3",
+    "origin",
+    "shop",
+    "forum",
+    "chat",
+    "www1",
+    "image",
+    "new",
+    "tv",
+    "dns",
+    "services",
+    "music",
+    "images",
+    "pay",
+    "ddrint",
+    "conc"
+]
 
 class Scanner:
     def __init__(self):
@@ -277,6 +332,16 @@ País: {w["country"]}
         waf = wafw00f.main.WAFW00F("https://stackoverflow.com")
         print(waf.identwaf())
     
+    def subdomain_scan(self):
+        print("Tentando encontrar subdomínios:")
+        for sub in SUBDOMAINS:
+            url = f"https://{sub}.{domain}"
+            try:
+                requests.get(url)
+                print(f"url encontrada ==> {url}")
+            except:
+                pass
+    
     def run(self):
         while self.running:
             print("\nEscolha algo para fazer: ")
@@ -289,6 +354,7 @@ País: {w["country"]}
             print("7. whois")
             print("8. wappalyzer")
             print("9. wafw00f")
+            print("10. Escanear subdomínios")
             print("0. Sair")
             escolha = input(">>> ")
 
@@ -361,6 +427,10 @@ País: {w["country"]}
 
             elif escolha == "9":
                 self.get_wafw00f()
+                continue
+        
+            elif escolha == "10":
+                self.get_dirsearch()
                 continue
 
             elif escolha == "0":
