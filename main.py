@@ -286,7 +286,85 @@ class Scanner:
         except Exception as e:
             print(f"Não foi possível escanear a rede, erro --> {e}")
 
+    def port_scanner(self):
+        escolha = ""
+        while escolha not in ["1", "2", "3", "4", "5", "6", "0"]:
+            print("\n1. Definir o IP do host")
+            print("2. Definir o IP da rede")
+            print("3. Escanear portas (TCP)")
+            print("4. Escanear portas (UDP)")
+            print("5. Detectar OS")
+            print("6. Escanear hosts conectados a sua rede")
+            print("0. Voltar")
+            escolha = input(">>> ")
+
+        if escolha == "0":
+            return
+
+        if escolha == "1":
+            print("\nEscolha IPv4 ou IPV6: ")
+            print("1. IPv4")
+            print("2. IPv6")
+            escolha = input(">>> ")
+            if escolha == "1":
+                IP = input("Digite o IP do host: ")
+                if IP.count(".") != 3:
+                    print("Digite um IP válido")
+                else:
+                    self.IP = IP
+            elif escolha == "2":
+                self.IPv6 = input("Digite o IP do host: ")
+            else:
+                print("Escolha um número válido\n")
+            return
+
+        elif escolha == "2":
+            IP = input("Digite o IP da rede: ")
+            if IP.count(".") != 3:
+                print("Digite um IP válido\n")
+            else:
+                self.networkIP = IP
+                mascara = input("Digite a máscara de sub-rede: ")
+                if mascara.isdigit() or (mascara.count(".") == 3):
+                    self.mascaraSubRede = mascara
+                else:
+                    print("Digite uma máscara de sub-rede válida\n")
+            return 
+
+        elif escolha == "3":
+            min_port = input("Escolha o range mínimo para escanear: ")
+            max_port = input("Escolha o range máximo para escanear: ")
+            self.scan_ports(min_port, max_port)
+            return
+
+        elif escolha == "4":
+            min_port = input("Escolha o range mínimo para escanear: ")
+            max_port = input("Escolha o range máximo para escanear: ")
+            self.scan_ports(min_port, max_port, UDP=True)
+            return
+
+        elif escolha == "5":
+            self.achou_banner = False
+            try:
+                for port in self.portas_abertas:
+                    banner = self.banner_grab(port)
+                    if banner:
+                        print(f"Banner capturado na porta {port} --> {banner}\n")
+            except Exception as e:
+                print(f"Não foi possivel identificar o OS usando banner grabbing, erro --> {e}\n")
+            if not self.achou_banner:
+                print("Não foi possivel identificar o OS usando banner grabbing\n")
+            return
+
+        elif escolha == "6":
+            self.scan_network()
+    
     def get_whois(self):
+        url = self.IP
+        if self.IP is None:
+            url = input("Insira uma url para escanear: ")
+        w = whois.whois(url)
+
         escolha = ""
         while escolha not in ["1", "2"]:
             print("Escolha uma opção de output: ")
@@ -294,7 +372,6 @@ class Scanner:
             print("2. Full (apresenta todas as informações coletadas)")
             escolha = input(">>> ")
 
-        w = whois.whois(self.IP)
 
         if escolha == "1":
             output = f"""
@@ -309,9 +386,10 @@ País: {w["country"]}
             print(output)
         elif escolha == "2":
             print(w)
-        print()
 
     def get_appalyzer(self):
+        url = input("Insira uma url para escanear: ")
+
         escolha = ""
         while escolha not in ["1", "2", "3"]:
             print("Escolha uma opção de scan: ")
@@ -320,7 +398,6 @@ País: {w["country"]}
             print("3. Full (apresenta todas as informações coletadas)")
             escolha = input(">>> ")
 
-        url = "https://stackoverflow.com"
         escolhas = ["fast", "balanced", "full"]
         output = analyze(url=url, scan_type=escolhas[int(escolha) - 1])
 
@@ -328,109 +405,65 @@ País: {w["country"]}
         pprint(output[url])
     
     def get_wafw00f(self):
+        url = input("Insira uma url para escanear: ")
         print("Tentando detectar se o site possui algum WAF:")
-        waf = wafw00f.main.WAFW00F("https://stackoverflow.com")
-        print(waf.identwaf())
+
+        try:
+            waf = wafw00f.main.WAFW00F(url)
+            waf_ident = waf.identwaf()
+            if waf_ident[0]:
+                print(f"Url {waf_ident[1]} possui WAF {waf_ident[0]}")
+            else:
+                print(f"Nenhum WAF identificado para a URL {url}")
+        except:
+            print(f"Nenhum WAF identificado para a URL {url}")
     
     def subdomain_scan(self):
+        domain = input("Insira um domínio para escanear (sem http ou https nem www.): ")
+
         print("Tentando encontrar subdomínios:")
+        urls_encontradas = 0
         for sub in SUBDOMAINS:
             url = f"https://{sub}.{domain}"
             try:
                 requests.get(url)
                 print(f"url encontrada ==> {url}")
+                urls_encontradas += 1
             except:
                 pass
+
+        if urls_encontradas == 0:
+            print("Nenhuma url encontrada")
     
     def run(self):
         while self.running:
             print("\nEscolha algo para fazer: ")
-            print("1. Definir o IP do host")
-            print("2. Definir o IP da rede")
-            print("3. Escanear portas (TCP)")
-            print("4. Escanear portas (UDP)")
-            print("5. Detectar OS")
-            print("6. Escanear hosts conectados a sua rede")
-            print("7. whois")
-            print("8. wappalyzer")
-            print("9. wafw00f")
-            print("10. Escanear subdomínios")
+            print("1. Port Scanner")
+            print("2. whois")
+            print("3. wappalyzer")
+            print("4. wafw00f")
+            print("5. Escanear subdomínios")
             print("0. Sair")
             escolha = input(">>> ")
 
             if escolha == "1":
-                print("\nEscolha IPv4 ou IPV6: ")
-                print("1. IPv4")
-                print("2. IPv6")
-                escolha = input(">>> ")
-                if escolha == "1":
-                    IP = input("Digite o IP do host: ")
-                    if IP.count(".") != 3:
-                        print("Digite um IP válido")
-                    else:
-                        self.IP = IP
-                elif escolha == "2":
-                    self.IPv6 = input("Digite o IP do host: ")
-                else:
-                    print("Escolha um número válido\n")
+                self.port_scanner()
                 continue
 
             elif escolha == "2":
-                IP = input("Digite o IP da rede: ")
-                if IP.count(".") != 3:
-                    print("Digite um IP válido\n")
-                else:
-                    self.networkIP = IP
-                    mascara = input("Digite a máscara de sub-rede: ")
-                    if mascara.isdigit() or (mascara.count(".") == 3):
-                        self.mascaraSubRede = mascara
-                    else:
-                        print("Digite uma máscara de sub-rede válida\n")
-                continue 
-
-            elif escolha == "3":
-                min_port = input("Escolha o range mínimo para escanear: ")
-                max_port = input("Escolha o range máximo para escanear: ")
-                self.scan_ports(min_port, max_port)
-                continue
-
-            elif escolha == "4":
-                min_port = input("Escolha o range mínimo para escanear: ")
-                max_port = input("Escolha o range máximo para escanear: ")
-                self.scan_ports(min_port, max_port, UDP=True)
-                continue
-
-            elif escolha == "5":
-                self.achou_banner = False
-                try:
-                    for port in self.portas_abertas:
-                        banner = self.banner_grab(port)
-                        if banner:
-                            print(f"Banner capturado na porta {port} --> {banner}\n")
-                except Exception as e:
-                    print(f"Não foi possivel identificar o OS usando banner grabbing, erro --> {e}\n")
-                if not self.achou_banner:
-                    print("Não foi possivel identificar o OS usando banner grabbing\n")
-                continue
-
-            elif escolha == "6":
-                self.scan_network()
-                continue
-
-            elif escolha == "7":
                 self.get_whois()
                 continue
 
-            elif escolha == "8":
+            elif escolha == "3":
                 self.get_appalyzer()
                 continue
 
-            elif escolha == "9":
+            elif escolha == "4":
                 self.get_wafw00f()
                 continue
         
-            elif escolha == "10":
-                self.get_dirsearch()
+            elif escolha == "5":
+                self.subdomain_scan()
                 continue
 
             elif escolha == "0":
